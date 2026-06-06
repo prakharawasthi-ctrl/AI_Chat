@@ -58,44 +58,44 @@ A production-ready mini AI customer support agent built with **Node.js + TypeScr
 ```
 assignment/
 ├── backend/
-│   ├── src/
-│   │   ├── db/
-│   │   │   ├── schema.sql          # Table definitions
-│   │   │   └── client.ts           # PostgreSQL pool + schema init
-│   │   ├── services/
-│   │   │   ├── llm.service.ts      # Gemini API wrapper + prompt
-│   │   │   └── redis.service.ts    # Redis cache client
-│   │   ├── routes/
-│   │   │   └── chat.routes.ts      # POST /chat/message, GET /chat/history
-│   │   ├── middleware/
-│   │   │   └── validate.ts         # Input validation middleware
-│   │   └── index.ts                # Express app entry point
-│   ├── .env                        # Local credentials (gitignored)
-│   ├── .env.example
-│   ├── .gitignore
-│   ├── package.json
-│   └── tsconfig.json
-│
-├── frontend/
-│   ├── src/
-│   │   ├── api/
-│   │   │   └── chat.ts             # fetch wrappers for backend
-│   │   ├── components/
-│   │   │   ├── ChatWidget.tsx      # Outer shell (header + layout)
-│   │   │   ├── MessageList.tsx     # Scrollable message area
-│   │   │   ├── MessageBubble.tsx   # Single message with markdown support
-│   │   │   └── InputBar.tsx        # Textarea + send button
-│   │   ├── App.tsx                 # Root — session state + history load
-│   │   ├── App.css
-│   │   ├── index.css
-│   │   └── main.tsx
-│   ├── index.html
-│   ├── .gitignore
-│   ├── package.json
-│   ├── tsconfig.json
-│   └── vite.config.ts
-│
-└── README.md
+├── src/
+│   ├── db/
+│   │   ├── schema.sql          # Table definitions
+│   │   └── client.ts           # PostgreSQL pool + schema init
+│   ├── services/
+│   │   ├── llm.service.ts      # Gemini API wrapper + prompt
+│   │   └── redis.service.ts    # Redis cache client
+│   ├── routes/
+│   │   └── chat.routes.ts      # POST /chat/message, GET /chat/history
+│   ├── middleware/
+│   │   └── validate.ts         # Input validation middleware
+│   └── index.ts                # Express app entry point
+├── .env                        # Local credentials (gitignored)
+├── .env.example
+├── .gitignore
+├── package.json
+└── tsconfig.json
+
+frontend/
+├── src/
+│   ├── api/
+│   │   └── chat.ts             # fetch wrappers for backend
+│   ├── components/
+│   │   ├── ChatWidget.tsx      # Outer shell (header + layout)
+│   │   ├── MessageList.tsx     # Scrollable message area
+│   │   ├── MessageBubble.tsx   # Single message with markdown support
+│   │   └── InputBar.tsx        # Textarea + send button
+│   ├── App.tsx                 # Root — session state + history load
+│   ├── App.css
+│   ├── index.css
+│   └── main.tsx
+├── index.html
+├── .gitignore
+├── package.json
+├── tsconfig.json
+└── vite.config.ts
+
+README.md
 ```
 
 ---
@@ -119,8 +119,8 @@ assignment/
 ### 1. Clone the repo
 
 ```bash
-git clone https://github.com/your-username/assignment.git
-cd assignment
+git clone https://github.com/prakharawasthi-ctrl/AI_Chat.git
+cd AI_Chat
 ```
 
 ### 2. Set up the backend
@@ -130,7 +130,7 @@ cd backend
 cp .env.example .env
 ```
 
-Edit `backend/.env` with your credentials:
+Edit `backend/.env` with your own credentials (Required: get these from your Supabase / Google AI Studio / Redis Cloud accounts):
 
 ```
 GEMINI_API_KEY=your_gemini_api_key
@@ -172,16 +172,16 @@ Visit `http://localhost:5173` and start chatting.
 
 | Variable | Required | Description |
 |---|---|---|
-| `GEMINI_API_KEY` | Yes | Google Gemini API key from AI Studio |
-| `DATABASE_URL` | Yes | PostgreSQL connection string (Supabase) |
-| `REDIS_URL` | No | Redis connection string (caching is a no-op if absent) |
-| `PORT` | No | Express server port (default: `3001`) |
+| `GEMINI_API_KEY` | ✅ Required | Google Gemini API key from AI Studio |
+| `DATABASE_URL` | ✅ Required | PostgreSQL connection string from Supabase |
+| `REDIS_URL` | ❌ Optional | Redis connection string (caching is a no-op if absent) |
+| `PORT` | ❌ Optional | Express server port (default: `3001`) |
 
 ### Frontend — `frontend/.env`
 
 | Variable | Required | Description |
 |---|---|---|
-| `VITE_API_URL` | No | Backend URL (default: `http://localhost:3001`) |
+| `VITE_API_URL` | ❌ Optional | Backend URL (default: `http://localhost:3001`) |
 
 ---
 
@@ -363,7 +363,7 @@ Redis is **optional** — if unavailable, all cache functions silently fall back
 3. Point to `backend/` directory
 4. Build: `npm install && npm run build`
 5. Start: `node dist/index.js`
-6. Set environment variables:
+6. Set environment variables (Required: use your own credentials from Supabase, Google AI Studio & Redis Cloud):
    ```
    GEMINI_API_KEY, DATABASE_URL, REDIS_URL, PORT=10000
    ```
@@ -375,7 +375,7 @@ Redis is **optional** — if unavailable, all cache functions silently fall back
 3. Framework: Vite
 4. Environment variable:
    ```
-   VITE_API_URL=https://your-backend-url.com
+   VITE_API_URL=https://your-backend-url.com   # Required: replace with your deployed backend URL
    ```
 5. Deploy
 
