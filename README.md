@@ -7,26 +7,34 @@ A production-ready mini AI customer support agent built with **Node.js + TypeScr
 ## Features
 
 ### Frontend
-- Clean, responsive live chat widget
+- Clean, responsive live chat dashboard with sidebar
+- Multi-session management — start new chats, switch between conversations, delete old ones
+- Dark / Light theme toggle (persisted in localStorage)
 - Distinct user vs. AI message bubbles (right/left aligned)
+- Welcome screen with FAQ suggestion chips (shipping, returns, hours, payment)
+- Markdown rendering for AI responses (tables, bold, lists)
 - "Agent is typing…" animated indicator while waiting for a response
 - Send button disabled during in-flight requests
 - Enter to send (Shift+Enter for newline)
+- Auto-resizing textarea with character counter (1000 char limit, warning < 100 remaining)
+- Copy-to-clipboard button on AI responses with "Copied!" confirmation
 - Auto-scroll to latest message
-- Conversation history restored on page reload via localStorage sessionId
-- Markdown rendering for AI responses (tables, bold, lists)
-- Inline error bubbles for API/network failures
+- Conversation history restored on page reload via localStorage
+- Inline error bubbles for API / network failures
+- Store info panel in sidebar (quick shipping, returns, hours reference)
+- Clear conversation button
 
 ### Backend
 - `POST /chat/message` — accepts message + optional sessionId, returns AI reply + sessionId
 - `GET /chat/history/:sessionId` — fetch full past conversation
-- PostgreSQL persistence (Supabase)
-- Redis caching (sessions, history, LLM responses)
+- `GET /health` — health check endpoint
+- PostgreSQL persistence (Supabase / Neon)
+- Redis caching (sessions, history, LLM responses) — gracefully falls back if unavailable
 - Last 20 messages sent as context to LLM (configurable)
-- Input validation middleware (empty, type, length)
+- Input validation middleware (empty, type, length, UUID format)
 - Global error handler — backend never crashes on bad input
 - Graceful LLM error handling with user-friendly messages
-- Structured logging at every step
+- Structured logging at every step (DB, Redis, LLM, routes, validation)
 
 ### LLM / AI
 - Google Gemini 2.5 Flash (free tier available)
@@ -58,44 +66,44 @@ A production-ready mini AI customer support agent built with **Node.js + TypeScr
 ```
 assignment/
 ├── backend/
-├── src/
-│   ├── db/
-│   │   ├── schema.sql          # Table definitions
-│   │   └── client.ts           # PostgreSQL pool + schema init
-│   ├── services/
-│   │   ├── llm.service.ts      # Gemini API wrapper + prompt
-│   │   └── redis.service.ts    # Redis cache client
-│   ├── routes/
-│   │   └── chat.routes.ts      # POST /chat/message, GET /chat/history
-│   ├── middleware/
-│   │   └── validate.ts         # Input validation middleware
-│   └── index.ts                # Express app entry point
-├── .env                        # Local credentials (gitignored)
-├── .env.example
-├── .gitignore
-├── package.json
-└── tsconfig.json
-
-frontend/
-├── src/
-│   ├── api/
-│   │   └── chat.ts             # fetch wrappers for backend
-│   ├── components/
-│   │   ├── ChatWidget.tsx      # Outer shell (header + layout)
-│   │   ├── MessageList.tsx     # Scrollable message area
-│   │   ├── MessageBubble.tsx   # Single message with markdown support
-│   │   └── InputBar.tsx        # Textarea + send button
-│   ├── App.tsx                 # Root — session state + history load
-│   ├── App.css
-│   ├── index.css
-│   └── main.tsx
-├── index.html
-├── .gitignore
-├── package.json
-├── tsconfig.json
-└── vite.config.ts
-
-README.md
+│   ├── src/
+│   │   ├── db/
+│   │   │   ├── schema.sql          # Table definitions
+│   │   │   └── client.ts           # PostgreSQL pool + schema init
+│   │   ├── services/
+│   │   │   ├── llm.service.ts      # Gemini API wrapper + prompt
+│   │   │   └── redis.service.ts    # Redis cache client
+│   │   ├── routes/
+│   │   │   └── chat.routes.ts      # POST /chat/message, GET /chat/history
+│   │   ├── middleware/
+│   │   │   └── validate.ts         # Input validation middleware
+│   │   └── index.ts                # Express app entry point
+│   ├── .env                        # Local credentials (gitignored)
+│   ├── .env.example
+│   ├── .gitignore
+│   ├── package.json
+│   └── tsconfig.json
+├── frontend/
+│   ├── src/
+│   │   ├── api/
+│   │   │   └── chat.ts             # fetch wrappers for backend
+│   │   ├── components/
+│   │   │   ├── ChatWidget.tsx      # Dashboard shell (sidebar + header + layout)
+│   │   │   ├── MessageList.tsx     # Scrollable message area + welcome screen
+│   │   │   ├── MessageBubble.tsx   # Single message with markdown + copy support
+│   │   │   └── InputBar.tsx        # Textarea + send button + char counter
+│   │   ├── App.tsx                 # Root — sessions, theme, history management
+│   │   ├── App.css
+│   │   ├── index.css
+│   │   └── main.tsx
+│   ├── .env
+│   ├── .env.example
+│   ├── index.html
+│   ├── .gitignore
+│   ├── package.json
+│   ├── tsconfig.json
+│   └── vite.config.ts
+└── README.md
 ```
 
 ---
@@ -130,7 +138,7 @@ cd backend
 cp .env.example .env
 ```
 
-Edit `backend/.env` with your own credentials (Required: get these from your Supabase / Google AI Studio / Redis Cloud accounts):
+Edit `backend/.env` with your own credentials:
 
 ```
 GEMINI_API_KEY=your_gemini_api_key
@@ -139,7 +147,7 @@ DATABASE_URL=postgresql://postgres:password@db.project.supabase.co:5432/postgres
 REDIS_URL=redis://default:password@host:port
 ```
 
-Install dependencies and start:
+Install dependencies and start in dev mode:
 
 ```bash
 npm install
@@ -154,11 +162,14 @@ Open a **new terminal tab**:
 
 ```bash
 cd frontend
+cp .env.example .env      # (optional — defaults to http://localhost:3001)
 npm install
 npm run dev
 ```
 
 Frontend starts at `http://localhost:5173`.
+
+> Note: The frontend `.env` file lets you set `VITE_API_URL` if your backend is deployed elsewhere. If omitted, it defaults to `http://localhost:3001`.
 
 ### 4. Open in browser
 
@@ -170,18 +181,18 @@ Visit `http://localhost:5173` and start chatting.
 
 ### Backend — `backend/.env`
 
-| Variable | Required | Description |
-|---|---|---|
-| `GEMINI_API_KEY` | ✅ Required | Google Gemini API key from AI Studio |
-| `DATABASE_URL` | ✅ Required | PostgreSQL connection string from Supabase |
-| `REDIS_URL` | ❌ Optional | Redis connection string (caching is a no-op if absent) |
-| `PORT` | ❌ Optional | Express server port (default: `3001`) |
+| Variable | Required | Default | Description |
+|---|---|---|---|
+| `GEMINI_API_KEY` | ✅ Required | — | Google Gemini API key from AI Studio |
+| `DATABASE_URL` | ✅ Required | — | PostgreSQL connection string from Supabase |
+| `PORT` | ❌ Optional | `3001` | Express server port |
+| `REDIS_URL` | ❌ Optional | `redis://localhost:6379` | Redis connection string (caching silently disabled if unreachable) |
 
 ### Frontend — `frontend/.env`
 
-| Variable | Required | Description |
-|---|---|---|
-| `VITE_API_URL` | ❌ Optional | Backend URL (default: `http://localhost:3001`) |
+| Variable | Required | Default | Description |
+|---|---|---|---|
+| `VITE_API_URL` | ❌ Optional | `http://localhost:3001` | Backend URL |
 
 ---
 
@@ -230,6 +241,15 @@ Fetch all past messages for a session (used on page reload).
     { "sender": "ai",   "text": "Hello! How can I help?", "timestamp": "2026-06-06T10:00:01Z" }
   ]
 }
+```
+
+### `GET /health`
+
+Health check endpoint.
+
+**Success response `200`:**
+```json
+{ "status": "ok" }
 ```
 
 ---
@@ -304,7 +324,7 @@ Redis is **optional** — if unavailable, all cache functions silently fall back
 |---|---|---|
 | Max output tokens | 300 | `generationConfig.maxOutputTokens` |
 | History window | 20 messages | Array slice in `llm.service.ts` |
-| Input message cap | 1000 chars | `validate.ts` middleware |
+| Input message cap | 1000 chars (client + server enforced) | `validate.ts` + `InputBar.tsx` |
 | Body size limit | 10 KB | `express.json({ limit: '10kb' })` |
 
 ---
@@ -316,9 +336,12 @@ Redis is **optional** — if unavailable, all cache functions silently fall back
 | Scenario | Status | Response |
 |---|---|---|
 | Missing `message` field | `400` | `"Message is required and must be a string."` |
+| `message` is not a string | `400` | `"Message is required and must be a string."` |
 | Empty string after trim | `400` | `"Message cannot be empty."` |
 | Message > 1000 chars | — | Silently truncated, request proceeds |
-| Invalid sessionId | `404` | `"Session not found."` |
+| `sessionId` is not a string | `400` | `"sessionId must be a string if provided."` |
+| `sessionId` is not valid UUID format | `400` | `"sessionId must be a valid UUID format."` |
+| Valid UUID but session does not exist | `404` | `"Session not found."` |
 
 ### LLM errors (backend)
 
@@ -363,10 +386,12 @@ Redis is **optional** — if unavailable, all cache functions silently fall back
 3. Point to `backend/` directory
 4. Build: `npm install && npm run build`
 5. Start: `node dist/index.js`
-6. Set environment variables (Required: use your own credentials from Supabase, Google AI Studio & Redis Cloud):
+6. Set environment variables (your own credentials from Supabase, Google AI Studio & Redis Cloud):
    ```
    GEMINI_API_KEY, DATABASE_URL, REDIS_URL, PORT=10000
    ```
+
+> Note: The `build` script automatically copies `src/db/schema.sql` → `dist/db/schema.sql` so the database schema initializes on first run.
 
 ### Frontend → Vercel
 
