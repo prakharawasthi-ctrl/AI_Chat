@@ -1,106 +1,78 @@
-# 🤖 ShopEasy AI Live Chat Agent
-### Spur Founding Full-Stack Engineer — Take-Home Assignment
+# ShopEasy AI Live Chat Agent
 
-A production-ready mini AI customer support agent built with **Node.js + TypeScript** (backend), **React + TypeScript** (frontend), **SQLite** (persistence), and **Google Gemini 1.5 Flash** (LLM — free tier).
-
----
-
-## 📋 Table of Contents
-
-- [Demo](#-demo)
-- [Features](#-features)
-- [Tech Stack](#-tech-stack)
-- [Project Structure](#-project-structure)
-- [Prerequisites](#-prerequisites)
-- [Getting Started](#-getting-started)
-- [Environment Variables](#-environment-variables)
-- [API Reference](#-api-reference)
-- [Data Model](#-data-model)
-- [LLM Integration](#-llm-integration)
-- [Error Handling](#-error-handling)
-- [Assumptions & Trade-offs](#-assumptions--trade-offs)
-- [Deployment](#-deployment)
-- [What I'd Add With More Time](#-what-id-add-with-more-time)
+A production-ready mini AI customer support agent built with **Node.js + TypeScript** (backend), **React + TypeScript** (frontend), **PostgreSQL + Redis** (persistence + caching), and **Google Gemini 2.5 Flash** (LLM).
 
 ---
 
-## 🎬 Demo
-
-```
-User:  "What's your return policy?"
-Agent: "We offer a 7-day hassle-free return policy. Items must be unused
-        and in original packaging. Refunds are processed within 5–7 business days."
-
-User:  "Do you ship to the US?"
-Agent: "Currently, ShopEasy ships within India only. Standard delivery takes
-        3–5 business days. Free shipping on orders above ₹499!"
-```
-
-Sessions persist across page reloads — your conversation is still there when you come back.
-
----
-
-## ✅ Features
+## Features
 
 ### Frontend
-- 💬 Clean, responsive live chat widget
-- 👤 / 🤖 Distinct user vs. AI message bubbles (right/left aligned)
-- ⌨️  "Agent is typing…" animated indicator while waiting for a response
-- 🔒 Send button disabled during in-flight requests
-- ↩️  Enter to send (Shift+Enter for newline)
-- 📜 Auto-scroll to latest message
-- 🔁 Conversation history restored on page reload via `localStorage` sessionId
-- ❌ Inline error bubbles for API/network failures — no silent failures
+- Clean, responsive live chat widget
+- Distinct user vs. AI message bubbles (right/left aligned)
+- "Agent is typing…" animated indicator while waiting for a response
+- Send button disabled during in-flight requests
+- Enter to send (Shift+Enter for newline)
+- Auto-scroll to latest message
+- Conversation history restored on page reload via localStorage sessionId
+- Markdown rendering for AI responses (tables, bold, lists)
+- Inline error bubbles for API/network failures
 
 ### Backend
 - `POST /chat/message` — accepts message + optional sessionId, returns AI reply + sessionId
 - `GET /chat/history/:sessionId` — fetch full past conversation
-- Full conversation persistence (SQLite)
+- PostgreSQL persistence (Supabase)
+- Redis caching (sessions, history, LLM responses)
 - Last 20 messages sent as context to LLM (configurable)
 - Input validation middleware (empty, type, length)
 - Global error handler — backend never crashes on bad input
 - Graceful LLM error handling with user-friendly messages
+- Structured logging at every step
 
 ### LLM / AI
-- Google Gemini 1.5 Flash (free tier — no credit card needed)
+- Google Gemini 2.5 Flash (free tier available)
 - System prompt with fictional store knowledge (ShopEasy)
 - Conversation history passed per request for contextual replies
 - Max 300 output tokens per response (cost control)
+- LLM response cache (reduces duplicate API calls)
 - Error classification: API key errors, quota/rate limit, generic timeout
 
 ---
 
-## 🛠 Tech Stack
+## Tech Stack
 
-| Layer | Technology | Why |
-|---|---|---|
-| Backend runtime | Node.js 20 + TypeScript | Type safety, fast iteration |
-| HTTP framework | Express.js | Lightweight, well-known |
-| Database | SQLite via `better-sqlite3` | Zero config, sync API, file-based |
-| LLM provider | Google Gemini 1.5 Flash | **Free tier**, 15 RPM, 1M TPD |
-| Frontend | React 18 + TypeScript + Vite | Fast HMR, familiar ecosystem |
-| Styling | Plain CSS (CSS variables) | No dependency overhead |
-| Session storage | Browser `localStorage` | Simple, no auth needed |
+| Layer | Technology |
+|---|---|
+| Backend runtime | Node.js + TypeScript |
+| HTTP framework | Express.js |
+| Database | PostgreSQL via Supabase |
+| Cache | Redis (Redis Cloud) |
+| LLM provider | Google Gemini 2.5 Flash |
+| Frontend | React 18 + TypeScript + Vite |
+| Markdown rendering | react-markdown |
+| Styling | Plain CSS (CSS variables) |
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
-spur-chat/
+assignment/
 ├── backend/
 │   ├── src/
 │   │   ├── db/
 │   │   │   ├── schema.sql          # Table definitions
-│   │   │   └── client.ts           # SQLite connection + schema init
+│   │   │   └── client.ts           # PostgreSQL pool + schema init
 │   │   ├── services/
-│   │   │   └── llm.service.ts      # Gemini API wrapper + prompt
+│   │   │   ├── llm.service.ts      # Gemini API wrapper + prompt
+│   │   │   └── redis.service.ts    # Redis cache client
 │   │   ├── routes/
 │   │   │   └── chat.routes.ts      # POST /chat/message, GET /chat/history
 │   │   ├── middleware/
 │   │   │   └── validate.ts         # Input validation middleware
 │   │   └── index.ts                # Express app entry point
+│   ├── .env                        # Local credentials (gitignored)
 │   ├── .env.example
+│   ├── .gitignore
 │   ├── package.json
 │   └── tsconfig.json
 │
@@ -111,40 +83,44 @@ spur-chat/
 │   │   ├── components/
 │   │   │   ├── ChatWidget.tsx      # Outer shell (header + layout)
 │   │   │   ├── MessageList.tsx     # Scrollable message area
-│   │   │   ├── MessageBubble.tsx   # Single message (user | ai | error)
+│   │   │   ├── MessageBubble.tsx   # Single message with markdown support
 │   │   │   └── InputBar.tsx        # Textarea + send button
 │   │   ├── App.tsx                 # Root — session state + history load
+│   │   ├── App.css
+│   │   ├── index.css
 │   │   └── main.tsx
 │   ├── index.html
-│   └── package.json
+│   ├── .gitignore
+│   ├── package.json
+│   ├── tsconfig.json
+│   └── vite.config.ts
 │
 └── README.md
 ```
 
 ---
 
-## 🔧 Prerequisites
-
-Make sure you have these installed:
+## Prerequisites
 
 | Tool | Version | Download |
 |---|---|---|
 | Node.js | 20+ | https://nodejs.org |
 | npm | 9+ | Comes with Node |
-| Git | any | https://git-scm.com |
 
-**Free account needed:**
-- **Google AI Studio** → https://aistudio.google.com — click "Get API key" (no credit card required)
+**Free accounts needed:**
+- **Supabase** → https://supabase.com (PostgreSQL database)
+- **Google AI Studio** → https://aistudio.google.com (Gemini API key)
+- **Redis Cloud** → https://redis.com/try-free/ (optional, for caching)
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### 1. Clone the repo
 
 ```bash
-git clone https://github.com/your-username/spur-chat.git
-cd spur-chat
+git clone https://github.com/your-username/assignment.git
+cd assignment
 ```
 
 ### 2. Set up the backend
@@ -154,11 +130,13 @@ cd backend
 cp .env.example .env
 ```
 
-Open `.env` and fill in your Gemini API key:
+Edit `backend/.env` with your credentials:
 
 ```
-GEMINI_API_KEY=your_actual_key_here
+GEMINI_API_KEY=your_gemini_api_key
 PORT=3001
+DATABASE_URL=postgresql://postgres:password@db.project.supabase.co:5432/postgres
+REDIS_URL=redis://default:password@host:port
 ```
 
 Install dependencies and start:
@@ -168,8 +146,7 @@ npm install
 npm run dev
 ```
 
-Backend will start at `http://localhost:3001`.
-SQLite database file (`chat.db`) is auto-created on first run.
+Backend starts at `http://localhost:3001`. The database schema (tables + indexes) is auto-created on first run.
 
 ### 3. Set up the frontend
 
@@ -181,7 +158,7 @@ npm install
 npm run dev
 ```
 
-Frontend will start at `http://localhost:5173`.
+Frontend starts at `http://localhost:5173`.
 
 ### 4. Open in browser
 
@@ -189,26 +166,26 @@ Visit `http://localhost:5173` and start chatting.
 
 ---
 
-## 🔐 Environment Variables
+## Environment Variables
 
 ### Backend — `backend/.env`
 
 | Variable | Required | Description |
 |---|---|---|
-| `GEMINI_API_KEY` | ✅ Yes | Your Google Gemini API key from AI Studio |
-| `PORT` | ❌ No | Port for Express server (default: `3001`) |
+| `GEMINI_API_KEY` | Yes | Google Gemini API key from AI Studio |
+| `DATABASE_URL` | Yes | PostgreSQL connection string (Supabase) |
+| `REDIS_URL` | No | Redis connection string (caching is a no-op if absent) |
+| `PORT` | No | Express server port (default: `3001`) |
 
-**Never commit your `.env` file.** It is already in `.gitignore`.
+### Frontend — `frontend/.env`
 
-`.env.example` (safe to commit):
-```
-GEMINI_API_KEY=your_key_here
-PORT=3001
-```
+| Variable | Required | Description |
+|---|---|---|
+| `VITE_API_URL` | No | Backend URL (default: `http://localhost:3001`) |
 
 ---
 
-## 📡 API Reference
+## API Reference
 
 ### `POST /chat/message`
 
@@ -240,8 +217,6 @@ Send a user message and get an AI reply.
 { "error": "Our AI agent is temporarily unavailable. Please try again in a moment." }
 ```
 
----
-
 ### `GET /chat/history/:sessionId`
 
 Fetch all past messages for a session (used on page reload).
@@ -259,32 +234,36 @@ Fetch all past messages for a session (used on page reload).
 
 ---
 
-## 🗄 Data Model
+## Data Model
 
 ### `conversations`
 
 | Column | Type | Description |
 |---|---|---|
-| `id` | TEXT (PK) | UUID v4 |
-| `created_at` | DATETIME | Auto-set on insert |
-| `metadata` | TEXT | Reserved for future use (e.g. user agent) |
+| `id` | UUID (PK) | UUID v4 |
+| `created_at` | TIMESTAMPTZ | Auto-set on insert |
+| `metadata` | JSONB | Reserved for future use |
 
 ### `messages`
 
 | Column | Type | Description |
 |---|---|---|
-| `id` | TEXT (PK) | UUID v4 |
-| `conversation_id` | TEXT (FK) | References `conversations.id` |
+| `id` | UUID (PK) | UUID v4 |
+| `conversation_id` | UUID (FK) | References `conversations.id` on delete cascade |
 | `sender` | TEXT | `'user'` or `'ai'` (enforced via CHECK constraint) |
 | `text` | TEXT | The message content |
-| `timestamp` | DATETIME | Auto-set on insert |
+| `timestamp` | TIMESTAMPTZ | Auto-set on insert |
+
+**Indexes:**
+- `idx_messages_conversation_id` on `messages(conversation_id)`
+- `idx_messages_timestamp` on `messages(timestamp)`
 
 ---
 
-## 🧠 LLM Integration
+## LLM Integration
 
 ### Provider
-**Google Gemini 1.5 Flash** via `@google/generative-ai` SDK.
+**Google Gemini 2.5 Flash** via `@google/generative-ai` SDK.
 
 Free tier limits:
 - 15 requests per minute
@@ -298,6 +277,8 @@ The system prompt is defined in `backend/src/services/llm.service.ts`:
 ```
 You are a helpful support agent for "ShopEasy", a fictional e-commerce store.
 Answer clearly and concisely. Only answer support-related questions.
+Format your response with proper markdown — use tables, bold, headings,
+and bullet points to make info easy to read.
 
 STORE KNOWLEDGE:
 - Shipping: Free shipping on orders above ₹499. Standard: 3–5 business days.
@@ -307,22 +288,28 @@ STORE KNOWLEDGE:
 - Cancellations: Within 2 hours of placing the order.
 ```
 
-### Context window strategy
-- Last **20 messages** (10 pairs) fetched from DB per request
-- Passed as `history` to Gemini's `startChat()`
-- Keeps costs low while maintaining meaningful conversational context
+### Caching Strategy
 
-### Cost controls
+| Cache | Key Pattern | TTL | Purpose |
+|---|---|---|---|
+| Session | `session:{id}` | 2h | Avoid DB lookups on repeated requests |
+| History | `history:{id}` | 1h | Avoid DB reads on page reload |
+| LLM response | `llm:{hash(userMsg+lastAi)}` | 30min | Avoid duplicate Gemini calls |
+
+Redis is **optional** — if unavailable, all cache functions silently fall back to DB queries.
+
+### Cost Controls
+
 | Control | Value | Where |
 |---|---|---|
 | Max output tokens | 300 | `generationConfig.maxOutputTokens` |
-| History window | 20 messages | SQL `LIMIT 20` |
+| History window | 20 messages | Array slice in `llm.service.ts` |
 | Input message cap | 1000 chars | `validate.ts` middleware |
 | Body size limit | 10 KB | `express.json({ limit: '10kb' })` |
 
 ---
 
-## 🛡 Error Handling
+## Error Handling
 
 ### Input validation (backend)
 
@@ -331,7 +318,7 @@ STORE KNOWLEDGE:
 | Missing `message` field | `400` | `"Message is required and must be a string."` |
 | Empty string after trim | `400` | `"Message cannot be empty."` |
 | Message > 1000 chars | — | Silently truncated, request proceeds |
-| Request body > 10 KB | `413` | Express built-in rejection |
+| Invalid sessionId | `404` | `"Session not found."` |
 
 ### LLM errors (backend)
 
@@ -352,76 +339,54 @@ STORE KNOWLEDGE:
 
 ---
 
-## 📐 Assumptions & Trade-offs
+## Assumptions & Trade-offs
 
 | Decision | Chosen approach | Reason / Trade-off |
 |---|---|---|
-| **Database** | SQLite (`better-sqlite3`) | Zero config for local dev. In production, swap for PostgreSQL — schema is compatible. |
-| **LLM provider** | Google Gemini 1.5 Flash | Only major LLM with a genuinely free tier (no card needed). OpenAI/Claude require billing. |
-| **Auth** | None (sessionId in localStorage) | Scope of assignment. Real app would use JWT or session cookies. |
-| **Redis** | Omitted | No caching needed at this scale. Would add for rate limiting or response caching in production. |
-| **History window** | Last 20 messages | Balances context quality vs. token cost. Configurable via constant. |
-| **Truncation** | 1000 char server-side cap | Prevents prompt injection and runaway costs. Frontend can show a character counter. |
-| **Styling** | Plain CSS, no UI library | Faster to control, no bundle bloat. Tailwind or shadcn would be fine for a team project. |
-| **Frontend framework** | React + Vite | Assignment allows React; faster to produce clean code here than learning Svelte under deadline. |
-| **Store knowledge** | Hardcoded in system prompt | Simplest approach. Could be stored in DB table and injected dynamically for multi-tenant use. |
+| **Database** | PostgreSQL (Supabase) | Production-grade, connection pooling, managed backups |
+| **LLM provider** | Google Gemini 2.5 Flash | Free tier available, no credit card required |
+| **Auth** | None (sessionId in localStorage) | Scope of project. Real app would use JWT or session cookies |
+| **Redis caching** | Redis Cloud (free 30MB) | Reduces DB reads and duplicate LLM calls. Graceful fallback if unavailable |
+| **History window** | Last 20 messages | Balances context quality vs. token cost |
+| **Truncation** | 1000 char server-side cap | Prevents prompt injection and runaway costs |
+| **Styling** | Plain CSS, no UI library | No bundle bloat. Tailwind or shadcn fine for team projects |
+| **Store knowledge** | Hardcoded in system prompt | Simplest approach. Could be stored in DB for multi-tenant use |
 
 ---
 
-## ☁️ Deployment
+## Deployment
 
-### Backend → Railway (free)
+### Backend → Render / Railway
 
-```bash
-# Install Railway CLI
-npm install -g @railway/cli
+1. Push repo to GitHub
+2. Create a **Web Service** on Render or Railway
+3. Point to `backend/` directory
+4. Build: `npm install && npm run build`
+5. Start: `node dist/index.js`
+6. Set environment variables:
+   ```
+   GEMINI_API_KEY, DATABASE_URL, REDIS_URL, PORT=10000
+   ```
 
-# Login and deploy
-railway login
-cd backend
-railway init
-railway up
-```
+### Frontend → Vercel
 
-Set environment variable in Railway dashboard:
-```
-GEMINI_API_KEY = your_key_here
-```
-
-### Frontend → Vercel (free)
-
-```bash
-npm install -g vercel
-cd frontend
-vercel
-```
-
-Update `frontend/src/api/chat.ts` — replace `localhost:3001` with your Railway backend URL:
-
-```ts
-const BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001';
-```
-
-Add to `frontend/.env`:
-```
-VITE_API_URL=https://your-app.railway.app
-```
+1. On Vercel, import the GitHub repo
+2. Set root directory to `frontend/`
+3. Framework: Vite
+4. Environment variable:
+   ```
+   VITE_API_URL=https://your-backend-url.com
+   ```
+5. Deploy
 
 ---
 
-## 🔮 What I'd Add With More Time
+## What I'd Add With More Time
 
-- **PostgreSQL** — swap SQLite for production-grade DB with proper connection pooling
-- **Redis** — rate limiting per IP, cache frequent FAQ responses
+- **Rate limiting** — per-IP rate limiting via Redis
 - **Auth** — lightweight JWT so users own their conversations
-- **Multi-tenant** — per-client system prompts + knowledge bases (core to Spur's model)
+- **Multi-tenant** — per-client system prompts + knowledge bases
 - **Streaming** — stream Gemini tokens to frontend via SSE for faster perceived response
 - **Webhook support** — emit conversation events to external systems (Shopify, Zoho, etc.)
 - **Admin panel** — view all conversations, flag problematic exchanges
 - **Tests** — Jest unit tests for `llm.service.ts` and route handlers with mocked Gemini
-
----
-
-## 📄 License
-
-MIT — built for the Spur take-home assignment.

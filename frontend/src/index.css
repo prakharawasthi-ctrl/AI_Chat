@@ -1,0 +1,91 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  /* Default Dark Mode (Glassmorphism & Sleek Dark UI) */
+  --bg-gradient: radial-gradient(circle at 50% 50%, #1a1b26 0%, #10111a 100%);
+  --widget-bg: rgba(26, 27, 38, 0.75);
+  --header-bg: rgba(36, 40, 59, 0.85);
+  --header-text: #f7f9fc;
+  --sidebar-bg: rgba(18, 19, 26, 0.95);
+  --border-color: rgba(255, 255, 255, 0.08);
+  --input-bg: rgba(15, 16, 22, 0.6);
+  --text-primary: #f7f9fc;
+  --text-secondary: #a9b1d6;
+  --user-bubble-bg: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
+  --user-bubble-text: #ffffff;
+  --ai-bubble-bg: rgba(36, 40, 59, 0.85);
+  --ai-bubble-text: #e0e0e0;
+  --error-bubble-bg: rgba(244, 63, 94, 0.15);
+  --error-bubble-text: #fda4af;
+  --accent-color: #00f2fe;
+  --accent-hover: #4facfe;
+  --shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  --backdrop-blur: blur(12px);
+  --card-hover: rgba(255, 255, 255, 0.04);
+}
+
+:root.light {
+  /* Clean, vibrant Light Mode */
+  --bg-gradient: radial-gradient(circle at 50% 50%, #f4f6f9 0%, #eef1f6 100%);
+  --widget-bg: rgba(255, 255, 255, 0.85);
+  --header-bg: rgba(255, 255, 255, 0.95);
+  --header-text: #1a1d24;
+  --sidebar-bg: rgba(240, 244, 248, 0.95);
+  --border-color: rgba(0, 0, 0, 0.08);
+  --input-bg: rgba(240, 244, 248, 0.8);
+  --text-primary: #1a1d24;
+  --text-secondary: #5a6578;
+  --user-bubble-bg: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  --user-bubble-text: #ffffff;
+  --ai-bubble-bg: rgba(255, 255, 255, 0.95);
+  --ai-bubble-text: #2d3748;
+  --error-bubble-bg: rgba(254, 226, 226, 0.9);
+  --error-bubble-text: #dc2626;
+  --accent-color: #00a884;
+  --accent-hover: #008f72;
+  --shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+  --backdrop-blur: blur(12px);
+  --card-hover: rgba(0, 0, 0, 0.02);
+}
+
+body {
+  font-family: 'Plus Jakarta Sans', 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--bg-gradient);
+  color: var(--text-primary);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow-x: hidden;
+  transition: background 0.3s ease;
+}
+
+/* Custom Scrollbar Styles */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+:root.light ::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
